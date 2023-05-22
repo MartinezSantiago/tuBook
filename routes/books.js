@@ -34,7 +34,7 @@ router.post('/',upload.single('image'), async (req, res) => {
   // Logic for creating a new book
   const connection = req.dbConnection;
   const { title, author, rating, publication_year, genre, price } = req.body;
-  const bookCover=await req.uploadImageToS3("tubookv1",req.file.originalname+"_"+new Date(),req.file);
+  const bookCover=await req.uploadImageToS3("tubookv1",req.file.originalname+"_1"+".jpg",req.file.buffer);
   const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price}.${bookCover.location});`;
   connection.query(query, (err, results) => {
     if (err) {
@@ -45,7 +45,6 @@ router.post('/',upload.single('image'), async (req, res) => {
     res.json("Se creo el libro correctamente");
   });
 });
-
 router.put('/:id', (req, res) => {
   const bookId = req.params.id;
   // Logic for updating a book with the specified ID
