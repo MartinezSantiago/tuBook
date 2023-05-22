@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const upload = multer(); 
 
 router.get('/', (req, res) => {
   const connection = req.dbConnection;
@@ -28,11 +30,12 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', (req, res) => {
+router.post('/',upload.single('image'), async (req, res) => {
   // Logic for creating a new book
   const connection = req.dbConnection;
   const { title, author, rating, publication_year, genre, price } = req.body;
-  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price) VALUES ('${title}', '${author}', ${rating}, ${publication_year}, '${genre}', ${price});`;
+  const bookCover=await req.uploadImageToS3("tubookv1",req.file.originalname+"_"+new Date(),req.file);
+  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price}.${bookCover.location});`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
