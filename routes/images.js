@@ -6,7 +6,7 @@ const upload = multer();
 router.post("/", upload.single('image'), async (req, res) => {
     const image = req.file; 
     try {
-      const link=await req.uploadImageToS3("tubookv1", req.file.filename+"_+"+datetimeToString()+".jpg", image.buffer);
+      const link=await req.uploadImageToS3("tubookv1", req.file.originalname+"_"+datetimeToString()+".jpg", image.buffer);
       res.json(link);
     } catch (error) {
       console.error('Error uploading image:', error);
