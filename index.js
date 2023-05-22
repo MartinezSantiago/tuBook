@@ -2,22 +2,25 @@ const express = require('express');
 const app = express();
 const createConnection = require('./db');
 const bodyParser = require('body-parser');
+const uploadImage = require('./helper/imageHelper');
+
 // Create the database connection
 const connection = createConnection();
 
-// Middleware to attach the connection object to the request
+// Middleware to attach the connection object and uploadImage function to the request
 app.use(bodyParser.json(), (req, res, next) => {
-  req.dbConnection = connection; 
+  req.dbConnection = connection;
+  req.uploadImageToS3 = uploadImage;
   next();
 });
 
-
-// Import the books router
+// Import the routes
 const booksRouter = require('./routes/books');
+const imagesRouter = require('./routes/images');
 
 // Register routes
 app.use('/books', booksRouter);
-
+app.use('/images', imagesRouter);
 
 // Start the server
 app.listen(3000, () => {
