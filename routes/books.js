@@ -30,12 +30,11 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/',upload.single('image'), async (req, res) => {
+router.post('/', async (req, res) => {
   // Logic for creating a new book
   const connection = req.dbConnection;
-  const { title, author, rating, publication_year, genre, price } = req.body;
-  const bookCover=await req.uploadImageToS3("tubookv1",req.file.originalname+"_1"+".jpg",req.file.buffer);
-  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price},'${bookCover.Location}');`;
+  const { title, author, rating, publication_year, genre, price,bookCover } = req.body;
+  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price},'${bookCover}');`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
