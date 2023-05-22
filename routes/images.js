@@ -7,7 +7,7 @@ router.post("/", upload.single('image'), async (req, res) => {
     const image = req.file; 
     try {
       const link=await req.uploadImageToS3("tubookv1", req.file.originalname+"_"+datetimeToString()+".jpg", image.buffer);
-      res.json(link);
+      res.json(link.Location);
     } catch (error) {
       console.error('Error uploading image:', error);
       res.status(500).json("Error uploading image");
