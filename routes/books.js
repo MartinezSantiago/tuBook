@@ -35,7 +35,7 @@ router.post('/',upload.single('image'), async (req, res) => {
   const connection = req.dbConnection;
   const { title, author, rating, publication_year, genre, price } = req.body;
   const bookCover=await req.uploadImageToS3("tubookv1",req.file.originalname+"_1"+".jpg",req.file.buffer);
-  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price},${bookCover.Location});`;
+  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price},'${bookCover.Location}');`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
