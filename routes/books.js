@@ -44,16 +44,43 @@ router.post('/', async (req, res) => {
     res.json("Se creo el libro correctamente");
   });
 });
+
 router.put('/:id', (req, res) => {
   const bookId = req.params.id;
   // Logic for updating a book with the specified ID
-  res.send(`Update book with ID: ${bookId}`);
+  const {title, author, rating, publication_year, genre, price, bookCover}= req.body
+  const query= `UPDATE books SET title='${title}', author='${author}', rating=${rating}, publication_year='${publication_year}', genre= '${genre}', price=${price}, bookCover='${bookCover}' WHERE id=${bookId}; `;
+  const connection = req.dbConnection; 
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing MySQL query:', err);
+      res.status(500).json({ error: 'Failed to retrieve books from the database' });
+      return;
+    }
+    res.json("Se actializa el libro");
+  });
 });
+
 
 router.delete('/:id', (req, res) => {
   const bookId = req.params.id;
-  // Logic for deleting a book with the specified ID
-  res.send(`Delete book with ID: ${bookId}`);
+
+  // Consulta DELETE
+  const query = `DELETE FROM books WHERE id = ${bookId}`;
+
+  const connection = req.dbConnection;  
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing MySQL query:', err);
+      res.status(500).json({ error: 'Failed to retrieve books from the database' });
+      return;
+    }
+    res.json("Se elimino el libro correctamente");
+  });
 });
+
+
 
 module.exports = router;
