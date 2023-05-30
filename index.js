@@ -21,11 +21,13 @@ app.use((req, res, next) => {
 const booksRouter = require('./routes/books');
 const imagesRouter = require('./routes/images');
 const usersRouter = require('./routes/users');
+const loansRouter = require('./routes/loans');
 
 // Register routes
 app.use('/books', booksRouter);
 app.use('/images', imagesRouter);
 app.use('/users', usersRouter);
+app.use('/loans', loansRouter);
 // Start the server
 app.listen(3000, () => {
   console.log('Server listening on port 3000');
