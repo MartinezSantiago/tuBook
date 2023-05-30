@@ -29,7 +29,18 @@ router.post("/create", (req, res) => {
       connection.query(queryCreateLoan, (err, result) => {
         if (err) throw err;
         console.log('Inserted a new loan into the database');
-    
+        const loan = {
+          id: result.insertId, 
+          userId: idUser,
+          bookId: idBook,
+          dueDate: dueDate,
+          price: price,
+          loanDate: loanDate,
+          returnDate: null,
+          surcharge: null,
+          quantity: quantity
+        };
+
         // Update the quantity
         const updatedQuantity = availableQuantity - quantity;
         const queryUpdateQuantity = `UPDATE books SET availableQuantity = ${updatedQuantity} WHERE id = ${idBook}`;
@@ -38,7 +49,7 @@ router.post("/create", (req, res) => {
           if (err) throw err;
           console.log('Updated the quantity in the books table');
     
-          res.sendStatus(200);
+          res.sendStatus(200).json(loan);
         });
       });
     });})
