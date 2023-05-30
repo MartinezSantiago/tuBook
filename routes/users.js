@@ -52,5 +52,17 @@ router.post('/register', async (req, res) => {
       res.status(500).json({ error: 'Failed to process login' });
     }
   });
-  
+  router.get("/:id",(req,res)=>{
+    const connection = req.dbConnection;
+    const id=req.params.id;
+    const query=`SELECT idUser,email FROM users where idUser=${id}`;
+    connection.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        res.status(500).json({ error: 'Failed to create user' });
+        return;
+      }
+      res.status(200).json(results);
+    });
+  })
   module.exports=router
