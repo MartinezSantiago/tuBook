@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const upload = multer(); 
 
 router.get('/', (req, res) => {
   const connection = req.dbConnection;
   const query = "SELECT * FROM books";
+  
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
-      res.status(500).json({ error: 'Failed to retrieve books from the database' });
-      return;
+      return res.status(500).json({ error: 'Failed to retrieve books from the database' });
     }
     res.json(results);
   });
@@ -19,64 +17,62 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   const bookId = req.params.id;
   const connection = req.dbConnection;
-  const query = "SELECT * FROM books where id="+bookId;
-  connection.query(query, (err, results) => {
+  const query = "SELECT * FROM books WHERE id = ?";
+  
+  connection.query(query, [bookId], (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
-      res.status(500).json({ error: 'Failed to retrieve books from the database' });
-      return;
+      return res.status(500).json({ error: 'Failed to retrieve book from the database' });
     }
-    res.json(results);
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    res.json(results[0]);
   });
 });
 
-router.post('/', async (req, res) => {
-  // Logic for creating a new book
+router.post('/', (req, res) => {
   const connection = req.dbConnection;
-  const { title, author, rating, publication_year, genre, price,bookCover,quantity } = req.body;
-  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price,bookCover,availableQuantity) VALUES ('${title}', '${author}', ${rating}, '${publication_year}', '${genre}', ${price},'${bookCover}',${quantity});`;
-  connection.query(query, (err, results) => {
+  const { title, author, rating, publication_year, genre, price, bookCover, quantity } = req.body;
+  const query = `INSERT INTO books (title, author, rating, publication_year, genre, price, bookCover, availableQuantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  const values = [title, author, rating, publication_year, genre, price, bookCover, quantity];
+
+  connection.query(query, values, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
-      res.status(500).json({ error: 'Failed to retrieve books from the database' });
-      return;
+      return res.status(500).json({ error: 'Failed to create book in the database' });
     }
-    res.json("Se creo el libro correctamente");
+    res.json("The book was created successfully");
   });
 });
+
 router.put('/:id', (req, res) => {
   const bookId = req.params.id;
-  // Logic for updating a book with the specified ID
-  const {title, author, rating, publication_year, genre, price, bookCover,quantity}= req.body
-  const query= `UPDATE books SET title='${title}', author='${author}', rating=${rating}, publication_year='${publication_year}', genre= '${genre}', price=${price}, bookCover='${bookCover}',quantity=${quantity} WHERE id=${bookId}; `;
-  const connection = req.dbConnection; 
+  const connection = req.dbConnection;
+  const { title, author, rating, publication_year, genre, price, bookCover, quantity } = req.body;
+  const query = `UPDATE books SET title = ?, author = ?, rating = ?, publication_year = ?, genre = ?, price = ?, bookCover = ?, availableQuantity = ? WHERE id = ?`;
+  const values = [title, author, rating, publication_year, genre, price, bookCover, quantity, bookId];
 
-  connection.query(query, (err, results) => {
+  connection.query(query, values, (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
-      res.status(500).json({ error: 'Failed to retrieve books from the database' });
-      return;
+      return res.status(500).json({ error: 'Failed to update book in the database' });
     }
-    res.json("Se actualiza el libro");
+    res.json("The book was updated successfully");
   });
 });
-
 
 router.delete('/:id', (req, res) => {
   const bookId = req.params.id;
+  const connection = req.dbConnection;
+  const query = `DELETE FROM books WHERE id = ?`;
 
-  // Consulta DELETE
-  const query = `DELETE FROM books WHERE id = ${bookId}`;
-
-  const connection = req.dbConnection;  
-
-  connection.query(query, (err, results) => {
+  connection.query(query, [bookId], (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
-      res.status(500).json({ error: 'Failed to retrieve books from the database' });
-      return;
+      return res.status(500).json({ error: 'Failed to delete book from the database' });
     }
-    res.json("Se elimino el libro correctamente");
+    res.json("The book was deleted successfully");
   });
 });
 
