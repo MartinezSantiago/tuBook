@@ -1,13 +1,13 @@
-const router = require("express").Router();
+const router = require('express').Router();
 
-router.post("/create", async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const { idBook, idUser, dueDate, price, loanDate, quantity } = req.body;
     const connection = req.dbConnection;
 
     // Check available quantity of the book
-    const queryCheckQuantity = `SELECT availableQuantity FROM books WHERE id = ${idBook}`;
-    const [rows] = await connection.query(queryCheckQuantity);
+    const queryCheckQuantity = `SELECT availableQuantity FROM books WHERE id = ?`;
+    const [rows] = await connection.query(queryCheckQuantity, [idBook]);
 
     const availableQuantity = rows[0].availableQuantity;
 
@@ -17,8 +17,8 @@ router.post("/create", async (req, res) => {
     }
 
     // Insert the loan
-    const queryCreateLoan = `INSERT INTO loans (userId, bookId, dueDate, price, loanDate, returnDate, surcharge, quantity) VALUES (${idUser}, ${idBook}, '${dueDate}', ${price}, '${loanDate}', null, null, ${quantity})`;
-    await connection.query(queryCreateLoan);
+    const queryCreateLoan = `INSERT INTO loans (userId, bookId, dueDate, price, loanDate, returnDate, surcharge, quantity) VALUES (?, ?, ?, ?, ?, null, null, ?)`;
+    const result = await connection.query(queryCreateLoan, [idUser, idBook, dueDate, price, loanDate, quantity]);
 
     console.log('Inserted a new loan into the database');
 
@@ -36,8 +36,8 @@ router.post("/create", async (req, res) => {
 
     // Update the quantity
     const updatedQuantity = availableQuantity - quantity;
-    const queryUpdateQuantity = `UPDATE books SET availableQuantity = ${updatedQuantity} WHERE id = ${idBook}`;
-    await connection.query(queryUpdateQuantity);
+    const queryUpdateQuantity = `UPDATE books SET availableQuantity = ? WHERE id = ?`;
+    await connection.query(queryUpdateQuantity, [updatedQuantity, idBook]);
 
     console.log('Updated the quantity in the books table');
 
@@ -48,13 +48,13 @@ router.post("/create", async (req, res) => {
   }
 });
 
-router.get("/getUserLoans/:idUser", async (req, res) => {
+router.get('/getUserLoans/:idUser', async (req, res) => {
   try {
     const connection = req.dbConnection;
     const userId = req.params.idUser;
-    const query = `SELECT * FROM loans WHERE userId = ${userId}`;
+    const query = `SELECT * FROM loans WHERE userId = ?`;
 
-    const [results] = await connection.query(query);
+    const [results] = await connection.query(query, [userId]);
     res.status(200).json(results);
   } catch (err) {
     console.error('Error executing MySQL query:', err);
@@ -62,13 +62,13 @@ router.get("/getUserLoans/:idUser", async (req, res) => {
   }
 });
 
-router.get("/getLoan/:loanId", async (req, res) => {
+router.get('/getLoan/:loanId', async (req, res) => {
   try {
     const connection = req.dbConnection;
     const loanId = req.params.loanId;
-    const query = `SELECT * FROM loans WHERE loanId = ${loanId}`;
+    const query = `SELECT * FROM loans WHERE loanId = ?`;
 
-    const [results] = await connection.query(query);
+    const [results] = await connection.query(query, [loanId]);
     res.status(200).json(results);
   } catch (err) {
     console.error('Error executing MySQL query:', err);
