@@ -1,78 +1,111 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 
-router.post('/create', async (req, res) => {
+router.post('/create', (req, res) => {
   try {
     const { idBook, idUser, dueDate, price, loanDate, quantity } = req.body;
     const connection = req.dbConnection;
 
     // Check available quantity of the book
-    const queryCheckQuantity = `SELECT availableQuantity FROM books WHERE id = ?`;
-    const [rows] = await connection.query(queryCheckQuantity, [idBook]);
+    const queryCheckQuantity = `SELECT availableQuantity FROM books WHERE id = ${idBook}`;
 
-    const availableQuantity = rows[0].availableQuantity;
+    connection.query(queryCheckQuantity, (err, rows) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        return res.status(500).json({ error: 'Failed to retrieve available quantity from the database' });
+      }
 
-    if (quantity > availableQuantity) {
-      // Insufficient quantity
-      return res.status(400).json({ message: "Insufficient quantity available" });
-    }
+      let availableQuantity = rows.length > 0 ? parseInt(rows[0].availableQuantity) : 0;
 
-    // Insert the loan
-    const queryCreateLoan = `INSERT INTO loans (userId, bookId, dueDate, price, loanDate, returnDate, surcharge, quantity) VALUES (?, ?, ?, ?, ?, null, null, ?)`;
-    const result = await connection.query(queryCreateLoan, [idUser, idBook, dueDate, price, loanDate, quantity]);
+      if (isNaN(availableQuantity)) {
+        availableQuantity = 0;
+      }
 
-    console.log('Inserted a new loan into the database');
+      if (quantity > availableQuantity) {
+        // Insufficient quantity
+        return res.status(400).json({ message: 'Insufficient quantity available' });
+      }
 
-    const loan = {
-      id: result.insertId,
-      userId: idUser,
-      bookId: idBook,
-      dueDate: dueDate,
-      price: price,
-      loanDate: loanDate,
-      returnDate: null,
-      surcharge: null,
-      quantity: quantity
-    };
+      // Insert the loan
+      const queryCreateLoan = `INSERT INTO loans (userId, bookId, dueDate, price, loanDate, returnDate, surcharge, quantity) VALUES (?, ?, ?, ?, ?, null, null, ?)`;
+      connection.query(queryCreateLoan, [idUser, idBook, dueDate, price, loanDate, quantity], (err, result) => {
+        if (err) {
+          console.error('Error executing MySQL query:', err);
+          return res.status(500).json({ error: 'Failed to create loan in the database' });
+        }
 
-    // Update the quantity
-    const updatedQuantity = availableQuantity - quantity;
-    const queryUpdateQuantity = `UPDATE books SET availableQuantity = ? WHERE id = ?`;
-    await connection.query(queryUpdateQuantity, [updatedQuantity, idBook]);
+        console.log('Inserted a new loan into the database');
 
-    console.log('Updated the quantity in the books table');
+        const loan = {
+          id: result.insertId,
+          userId: idUser,
+          bookId: idBook,
+          dueDate: dueDate,
+          price: price,
+          loanDate: loanDate,
+          returnDate: null,
+          surcharge: null,
+          quantity: quantity
+        };
 
-    res.status(200).json(loan);
+        // Update the quantity
+        const updatedQuantity = availableQuantity - quantity;
+        const queryUpdateQuantity = `UPDATE books SET availableQuantity = ? WHERE id = ?`;
+        connection.query(queryUpdateQuantity, [updatedQuantity, idBook], (err) => {
+          if (err) {
+            console.error('Error executing MySQL query:', err);
+            return res.status(500).json({ error: 'Failed to update quantity in the database' });
+          }
+
+          console.log('Updated the quantity in the books table');
+
+          res.status(200).json(loan);
+        });
+      });
+    });
   } catch (err) {
-  console.error('Error executing MySQL query:', err);
-  res.status(500).json({ error: 'Failed to create loan in the database', requestBody: req.body });
-}
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An error occurred' });
+  }
 });
 
-router.get('/getUserLoans/:idUser', async (req, res) => {
+router.get('/getUserLoans/:idUser', (req, res) => {
   try {
     const connection = req.dbConnection;
     const userId = req.params.idUser;
     const query = `SELECT * FROM loans WHERE userId = ?`;
 
-    const [results] = await connection.query(query, [userId]);
-    res.status(200).json(results);
+    connection.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        return res.status(500).json({ error: 'Failed to retrieve user loans from the database' });
+      }
+
+      res.status(200).json(results);
+    });
   } catch (err) {
-    console.error('Error executing MySQL query:', err);
-    res.status(500).json({ error: 'Failed to retrieve user loans from the database' });
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An error occurred' });
   }
 });
 
-router.get('/getLoan/:loanId', async (req, res) => {
+router.get('/getLoan/:loanId', (req, res) => {
   try {
     const connection = req.dbConnection;
     const loanId = req.params.loanId;
     const query = `SELECT * FROM loans WHERE loanId = ?`;
 
-    const [results] = await connection.query(query, [loanId]);
-    res.status(200).json(results);
+    connection.query(query, [loanId], (err, results) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        return res.status(500).json({ error: 'Failed to retrieve loan from the database' });
+      }
+
+      res.status(200).json(results);
+    });
   } catch (err) {
-    console.error('Error executing MySQL query:', err);
-    res.status(500).json({ error: 'Failed to retrieve loan from the database' });
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An error occurred' });
   }
 });
 
