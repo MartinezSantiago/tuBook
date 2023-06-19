@@ -13,7 +13,18 @@ app.use(bodyParser.json());
 app.use((req, res, next) => {
   req.dbConnection = connection;
   req.uploadImageToS3 = uploadImage;
-  next();
+
+  // Check if the request is coming from AWS
+  const isAWSRequest = req.get('host').includes('.execute-api.');
+
+  if (isAWSRequest) {
+    // Handle AWS request
+    // Perform any necessary validations or additional logic specific to AWS
+    next();
+  } else {
+    // Return an error response for non-AWS requests
+    res.status(403).json({ error: 'Forbidden' });
+  }
 });
 
 
