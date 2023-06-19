@@ -43,9 +43,9 @@ router.post('/create', async (req, res) => {
 
     res.status(200).json(loan);
   } catch (err) {
-    console.error('Error executing MySQL query:', err);
-    res.status(500).json({ error: 'Failed to create loan in the database' });
-  }
+  console.error('Error executing MySQL query:', err);
+  res.status(500).json({ error: 'Failed to create loan in the database', requestBody: req.body });
+}
 });
 
 router.get('/getUserLoans/:idUser', async (req, res) => {
