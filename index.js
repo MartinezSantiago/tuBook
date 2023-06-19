@@ -9,7 +9,6 @@ const connection = createConnection();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Custom middleware to attach the connection object and uploadImage function to the request
 app.use((req, res, next) => {
   req.dbConnection = connection;
   req.uploadImageToS3 = uploadImage;
@@ -17,15 +16,16 @@ app.use((req, res, next) => {
   // Check if the request is coming from AWS
   const isAWSRequest = req.get('host').includes('.execute-api.');
 
-  if (isAWSRequest) {
-    // Handle AWS request
-    // Perform any necessary validations or additional logic specific to AWS
+  if (isAWSRequest || req.get('host') === 'bk48t1027l.execute-api.us-east-1.amazonaws.com') {
+    // Handle AWS request or requests from your specific API Gateway URL
+    // Perform any necessary validations or additional logic specific to AWS or your API Gateway URL
     next();
   } else {
     // Return an error response for non-AWS requests
-    res.status(403).json({ error: 'Forbidden' });
+    res.status(403).json({ error: 'Forbidden', host: req.get('host') });
   }
 });
+
 
 
 // Import the routes
