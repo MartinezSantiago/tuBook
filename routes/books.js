@@ -18,7 +18,6 @@ router.get('/:id', (req, res) => {
   const bookId = req.params.id;
   const connection = req.dbConnection;
   const query = "SELECT * FROM books WHERE id = ?";
-  console.log(bookId);
   connection.query(query, [bookId], (err, results) => {
     if (err) {
       console.error('Error executing MySQL query:', err);
